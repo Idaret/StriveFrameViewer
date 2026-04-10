@@ -129,6 +129,8 @@ namespace DrawParams {
 
 class DrawTool {
   bool valid = false;
+  bool matchStarted = false;
+
   Unreal::UObject *ref_hud = nullptr;
   Unreal::UObject *ref_player = nullptr;
   Unreal::UObject *ref_font = nullptr;
@@ -151,11 +153,17 @@ public:
 
   static DrawTool &instance();
 
+  void matchStart() {
+    matchStarted = true;
+  }
+
   void initialize();
   bool update(void *actual_hud);
   double getWidth() const { return screen_width; }
   double getHeight() const { return screen_height; }
   double getUnits() const { return units; }
+
+  void updateRefs();
 
   SimpleFVector project(const SimpleFVector &world_coords) const {
     DrawParams::Project params{

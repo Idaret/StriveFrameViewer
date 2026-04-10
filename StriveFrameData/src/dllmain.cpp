@@ -326,6 +326,8 @@ void hook_MatchStart(AREDGameState_Battle *GameState) {
   pause_manager.reset();
   tracker.reset();
 
+  DrawTool::instance().matchStart();
+
   orig_MatchStart(GameState);
 }
 void hook_AHUDPostRender(void *hud) {
@@ -386,7 +388,7 @@ void hook_UpdateBattle(AREDGameState_Battle *GameState, float DeltaTime) {
 
   if (game_state.matchStarted) {
     game_state.matchStarted = false;
-    DrawTool::instance().initialize();
+    // DrawTool::instance().initialize();
     tracker.setup();
   }
 

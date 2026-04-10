@@ -29,20 +29,29 @@ Unreal::UObject *getFont() {
   return nullptr;
 }
 
+// useless now that we just update refs
 void DrawTool::initialize() {
   valid = false;
 
   static auto hud_class_name = Unreal::FName(STR("REDHUD_Battle"), Unreal::FNAME_Add);
+
+  ref_hud = UObjectGlobals::FindFirstOf(hud_class_name);
+  if (!ref_hud)
+    return;
+
+  updateRefs();
+}
+
+void DrawTool::updateRefs() {
+  if (!ref_hud) return;
+  valid = false;
+
   static auto hud_drawrect_func_name = Unreal::FName(STR("DrawRect"), Unreal::FNAME_Add);
   static auto hud_drawtext_func_name = Unreal::FName(STR("DrawText"), Unreal::FNAME_Add);
   static auto hud_drawline_func_name = Unreal::FName(STR("DrawLine"), Unreal::FNAME_Add);
   static auto hud_project_func_name = Unreal::FName(STR("Project"), Unreal::FNAME_Add);
   static auto hud_getplayer_func_name = Unreal::FName(STR("GetOwningPlayerController"), Unreal::FNAME_Add);
   static auto player_getsize_func_name = Unreal::FName(STR("GetViewportSize"), Unreal::FNAME_Add);
-
-  ref_hud = UObjectGlobals::FindFirstOf(hud_class_name);
-  if (!ref_hud)
-    return;
 
   ref_drawrect = ref_hud->GetFunctionByNameInChain(hud_drawrect_func_name);
   ref_drawtext = ref_hud->GetFunctionByNameInChain(hud_drawtext_func_name);
@@ -65,12 +74,26 @@ void DrawTool::initialize() {
     return;
 
   valid = true;
-  update(ref_hud);
 }
 
+
 bool DrawTool::update(void *actual_hud) {
-  if (!valid || actual_hud != ref_hud)
+  if (actual_hud != ref_hud) {
+    valid = false;
+
+    if (matchStarted) {
+      matchStarted = false;
+
+      Output::send<LogLevel::Verbose>(STR("Match Started\n"));
+
+      ref_hud = (UObject*) actual_hud; //  just force it here
+      updateRefs();
+    }
+  }
+
+  if (!valid) {
     return false;
+  }
 
   DrawParams::Size size_data;
   ref_player->ProcessEvent(ref_getsize, &size_data);
