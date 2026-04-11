@@ -34,6 +34,9 @@ using funcMatchStart_t = void (*)(AREDGameState_Battle *);
 using funcGetGameMode_t = int (*)(UREDGameCommon *);
 using funcUpdateBattle_t = void (*)(AREDGameState_Battle *, float);
 
+// Other func
+using funcGetWorldSettings = Unreal::UObject* (*)(void *);
+
 // Hooks
 void hook_AHUDPostRender(void *);
 void hook_ACamUpdateCamera(void *, float);
@@ -276,18 +279,19 @@ class UeTracker {
 
     const auto **ACamera_vtable = (const void **)get_rip_relative(sigscan::get().scan("\x48\x8D\x05\x00\x00\x00\x00\x48\x89\x07\x48\x8D\x8F\x00\x00\x00\x00\xC7\x87\x00\x00\x00\x00\xFF\xFF\xFF\xFF", "xxx????xxxxxx????xx????xxxx") + 3);
 
-
     orig_ACamUpdateCamera = (funcACamUpdateCamera_t)vtable_hook(ACamera_vtable, 208, hook_ACamUpdateCamera);
   }
   void findProp() {
-    static auto input_class_name = Unreal::FName(STR("REDPlayerController_Battle"), Unreal::FNAME_Add);
+    // static auto input_class_name = Unreal::FName(STR("REDPlayerController_Battle"), Unreal::FNAME_Add);
     static auto getworldsets_func_name = Unreal::FName(STR("K2_GetWorldSettings"), Unreal::FNAME_Add);
 
-    auto *input_actor = static_cast<Unreal::AActor *>(UObjectGlobals::FindFirstOf(input_class_name));
-    if (!input_actor) return;
+    // auto *input_actor = static_cast<Unreal::AActor *>(UObjectGlobals::FindFirstOf(input_class_name));
+    // if (!input_actor) return;
 
-    auto *world_actor = input_actor->GetWorld();
-    if (!world_actor) return;
+    // auto *world_actor = input_actor->GetWorld();
+    // if (!world_actor) return;
+
+    auto world_actor = reinterpret_cast<Unreal::UObject *>(GWorld);
 
     auto *getworldsets_func = world_actor->GetFunctionByNameInChain(getworldsets_func_name);
     if (!getworldsets_func) return;
@@ -307,7 +311,6 @@ public:
     reset();
     hookFuncs();
     findProp();
-    return;
   }
   bool isUePaused() {
     if (!paused_prop) return false;

@@ -670,3 +670,5 @@ public:
   bool can_whiff_cancel() const { return attack_flag & PLATK_FLEXCANCEL; }
   bool can_gatling_cancel() const { return (attack_flag & PLATK_CHAINCANCEL) && landed_hit; }
 };
+
+extern UWorld** GWorld;

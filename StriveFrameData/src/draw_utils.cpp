@@ -84,8 +84,6 @@ bool DrawTool::update(void *actual_hud) {
     if (matchStarted) {
       matchStarted = false;
 
-      Output::send<LogLevel::Verbose>(STR("Match Started\n"));
-
       ref_hud = (UObject*) actual_hud; //  just force it here
       updateRefs();
     }
