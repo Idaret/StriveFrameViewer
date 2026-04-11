@@ -78,6 +78,34 @@ bool line_box_intersection(
   return true;
 }
 
+bool is_on_box_edge(const FVector2D &a, const FVector2D &b,
+                    const FVector2D &box_min, const FVector2D &box_max,
+                    float eps = 1e-4f) {
+  auto nearly_equal = [eps](float x, float y) {
+    return std::abs(x - y) < eps;
+  };
+
+  // Vertical line on left or right edge
+  if (nearly_equal(a.x, b.x)) {
+    if (nearly_equal(a.x, box_min.x) || nearly_equal(a.x, box_max.x)) {
+      float line_min_y = std::min(a.y, b.y);
+      float line_max_y = std::max(a.y, b.y);
+      return nearly_equal(line_min_y, box_min.y) && nearly_equal(line_max_y, box_max.y);
+    }
+  }
+
+  // Horizontal line on top or bottom edge
+  if (nearly_equal(a.y, b.y)) {
+    if (nearly_equal(a.y, box_min.y) || nearly_equal(a.y, box_max.y)) {
+      float line_min_x = std::min(a.x, b.x);
+      float line_max_x = std::max(a.x, b.x);
+      return nearly_equal(line_min_x, box_min.x) && nearly_equal(line_max_x, box_max.x);
+    }
+  }
+
+  return false;
+}
+
 struct DrawnHitbox {
   hitbox::box_type type;
 
@@ -109,6 +137,9 @@ struct DrawnHitbox {
     lines.clear();
 
     for (auto &line : old_lines) {
+      if (is_on_box_edge(line[0], line[1], other.corners[0], other.corners[2]))
+        continue;
+
       float entry_fraction, exit_fraction;
       auto intersected = line_box_intersection(
           other.corners[0], other.corners[2],
